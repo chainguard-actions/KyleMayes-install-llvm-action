@@ -8,7 +8,7 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 | Version | Tag | Upstream commit |
 |---------|-----|-----------------|
-| v2.0.9 | [`v2.0.9`](https://github.com/chainguard-actions/install-llvm-action/tree/v2.0.9) | — |
+| v2.0.9 | [`v2.0.9`](https://github.com/chainguard-actions/KyleMayes--install-llvm-action/tree/v2.0.9) | — |
 
 ## Privacy
 
