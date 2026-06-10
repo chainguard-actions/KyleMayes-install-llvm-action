@@ -1,6 +1,6 @@
 # KyleMayes/install-llvm-action
 
-A GitHub Action for downloading and installing LLVM and Clang binaries.
+Downloads and installs LLVM and Clang binaries.
 
 Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at [https://github.com/KyleMayes/install-llvm-action](https://github.com/KyleMayes/install-llvm-action).
 
