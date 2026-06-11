@@ -1,4 +1,4 @@
-name: Test LLVM install with force-url and auth inputs
+name: Test LLVM install with force-url and auth
 on:
   workflow_dispatch:
 jobs:
@@ -21,4 +21,8 @@ jobs:
             echo "FAIL: expected version output to be non-empty"
             exit 1
           fi
-          echo "PASS"
+          echo "PASS: version output is '$ACTUAL'"
+      - name: Assert clang is available
+        run: |
+          which clang || which clang-17 || (echo "FAIL: clang not found in PATH" && exit 1)
+          echo "PASS: clang found"
