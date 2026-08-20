@@ -1,0 +1,78 @@
+name: Test LLVM installation to custom directory (cached)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create fake LLVM directory structure in custom location
+        run: |
+          mkdir -p /tmp/llvm-custom/bin
+          mkdir -p /tmp/llvm-custom/lib
+          # Create fake clang binaries
+          printf '#!/bin/sh\necho "fake clang 17.0.0"\n' > /tmp/llvm-custom/bin/clang
+          chmod +x /tmp/llvm-custom/bin/clang
+          printf '#!/bin/sh\necho "fake clang++ 17.0.0"\n' > /tmp/llvm-custom/bin/clang++
+          chmod +x /tmp/llvm-custom/bin/clang++
+      - id: action
+        uses: .
+        with:
+          version: "17"
+          directory: "/tmp/llvm-custom"
+          cached: "true"
+      - name: Assert LLVM_PATH points to custom directory
+        env:
+          LLVM_PATH: ${{ env.LLVM_PATH }}
+        run: |
+          echo "LLVM_PATH: $LLVM_PATH"
+          if [ -z "$LLVM_PATH" ]; then
+            echo "FAIL: LLVM_PATH environment variable is not set"
+            exit 1
+          fi
+          if [ "$LLVM_PATH" != "/tmp/llvm-custom" ]; then
+            echo "FAIL: expected LLVM_PATH=/tmp/llvm-custom but got $LLVM_PATH"
+            exit 1
+          fi
+          echo "PASS: LLVM_PATH=$LLVM_PATH"
+      - name: Assert binaries exist in custom directory
+        run: |
+          echo "Listing /tmp/llvm-custom/bin:"
+          ls /tmp/llvm-custom/bin/
+          if [ ! -d "/tmp/llvm-custom/bin" ]; then
+            echo "FAIL: expected /tmp/llvm-custom/bin to exist"
+            exit 1
+          fi
+          if [ ! -f "/tmp/llvm-custom/bin/clang" ]; then
+            echo "FAIL: clang binary not found in /tmp/llvm-custom/bin"
+            exit 1
+          fi
+          echo "PASS: binaries found in custom directory"
+      - name: Assert clang is on PATH from custom directory
+        run: |
+          echo "PATH=$PATH"
+          CLANG_PATH="$(command -v clang 2>/dev/null || true)"
+          echo "clang path: $CLANG_PATH"
+          if [ -z "$CLANG_PATH" ]; then
+            echo "FAIL: clang not found on PATH"
+            exit 1
+          fi
+          if ! echo "$CLANG_PATH" | grep -q "/tmp/llvm-custom/bin"; then
+            echo "FAIL: clang is not from custom directory (got: $CLANG_PATH)"
+            exit 1
+          fi
+          echo "PASS: clang found at $CLANG_PATH"
+      - name: Assert LD_LIBRARY_PATH includes custom lib directory
+        env:
+          LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
+        run: |
+          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+          if [ -z "$LD_LIBRARY_PATH" ]; then
+            echo "FAIL: LD_LIBRARY_PATH environment variable is not set"
+            exit 1
+          fi
+          if ! echo "$LD_LIBRARY_PATH" | grep -q "/tmp/llvm-custom/lib"; then
+            echo "FAIL: LD_LIBRARY_PATH does not contain /tmp/llvm-custom/lib"
+            exit 1
+          fi
+          echo "PASS: LD_LIBRARY_PATH=$LD_LIBRARY_PATH"

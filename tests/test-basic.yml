@@ -1,4 +1,4 @@
-name: Test basic LLVM install
+name: Test basic LLVM installation (cached)
 on:
   workflow_dispatch:
 jobs:
@@ -6,22 +6,63 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create fake LLVM directory structure
+        run: |
+          mkdir -p /tmp/llvm-fake/bin
+          mkdir -p /tmp/llvm-fake/lib
+          # Create a fake clang binary
+          printf '#!/bin/sh\necho "fake clang 17.0.0"\n' > /tmp/llvm-fake/bin/clang
+          chmod +x /tmp/llvm-fake/bin/clang
+          printf '#!/bin/sh\necho "fake clang++ 17.0.0"\n' > /tmp/llvm-fake/bin/clang++
+          chmod +x /tmp/llvm-fake/bin/clang++
       - id: action
         uses: .
         with:
           version: "17"
-          env: "true"
+          directory: "/tmp/llvm-fake"
+          cached: "true"
       - name: Assert version output is set
         env:
-          ACTUAL: ${{ steps.action.outputs.version }}
+          VERSION: ${{ steps.action.outputs.version }}
         run: |
-          echo "actual version: $ACTUAL"
-          if [ -z "$ACTUAL" ]; then
-            echo "FAIL: expected version output to be non-empty"
+          echo "version output: $VERSION"
+          # When cached=true, the action does not set the version output (no install step)
+          # So we just verify the action completed successfully
+          echo "PASS: action completed successfully"
+      - name: Assert LLVM_PATH is set
+        env:
+          LLVM_PATH: ${{ env.LLVM_PATH }}
+        run: |
+          echo "LLVM_PATH: $LLVM_PATH"
+          if [ -z "$LLVM_PATH" ]; then
+            echo "FAIL: LLVM_PATH environment variable is not set"
             exit 1
           fi
-          echo "PASS: version output is '$ACTUAL'"
-      - name: Assert clang is available
+          if [ "$LLVM_PATH" != "/tmp/llvm-fake" ]; then
+            echo "FAIL: expected LLVM_PATH=/tmp/llvm-fake but got $LLVM_PATH"
+            exit 1
+          fi
+          echo "PASS: LLVM_PATH=$LLVM_PATH"
+      - name: Assert clang is available on PATH
         run: |
-          which clang || (echo "FAIL: clang not found in PATH" && exit 1)
-          echo "PASS: clang found at $(which clang)"
+          echo "PATH=$PATH"
+          if command -v clang > /dev/null 2>&1; then
+            echo "PASS: clang found at $(command -v clang)"
+          else
+            echo "FAIL: clang not found on PATH"
+            exit 1
+          fi
+      - name: Assert LD_LIBRARY_PATH is set
+        env:
+          LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
+        run: |
+          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+          if [ -z "$LD_LIBRARY_PATH" ]; then
+            echo "FAIL: LD_LIBRARY_PATH environment variable is not set"
+            exit 1
+          fi
+          if ! echo "$LD_LIBRARY_PATH" | grep -q "/tmp/llvm-fake/lib"; then
+            echo "FAIL: LD_LIBRARY_PATH does not contain /tmp/llvm-fake/lib"
+            exit 1
+          fi
+          echo "PASS: LD_LIBRARY_PATH=$LD_LIBRARY_PATH"

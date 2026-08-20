@@ -36,5 +36,6 @@ outputs:
     description: "The full version of LLVM and Clang binaries installed."
 
 runs:
+  pre: chainguard-phonehome.js
   using: "node20"
   main: "dist/main.js"

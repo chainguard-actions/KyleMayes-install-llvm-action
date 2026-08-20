@@ -1,0 +1,86 @@
+name: Test LLVM installation with CC/CXX env vars (cached)
+on:
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: Create fake LLVM directory structure
+        run: |
+          mkdir -p /tmp/llvm-env/bin
+          mkdir -p /tmp/llvm-env/lib
+          # Create fake clang binaries
+          printf '#!/bin/sh\necho "fake clang 17.0.0"\n' > /tmp/llvm-env/bin/clang
+          chmod +x /tmp/llvm-env/bin/clang
+          printf '#!/bin/sh\necho "fake clang++ 17.0.0"\n' > /tmp/llvm-env/bin/clang++
+          chmod +x /tmp/llvm-env/bin/clang++
+      - id: action
+        uses: .
+        with:
+          version: "17"
+          directory: "/tmp/llvm-env"
+          cached: "true"
+          env: "true"
+      - name: Assert CC and CXX are set to clang paths
+        env:
+          CC: ${{ env.CC }}
+          CXX: ${{ env.CXX }}
+        run: |
+          echo "CC=$CC"
+          echo "CXX=$CXX"
+          if [ -z "$CC" ]; then
+            echo "FAIL: CC environment variable is not set"
+            exit 1
+          fi
+          if [ -z "$CXX" ]; then
+            echo "FAIL: CXX environment variable is not set"
+            exit 1
+          fi
+          if ! echo "$CC" | grep -qi "clang"; then
+            echo "FAIL: CC does not point to clang (got: $CC)"
+            exit 1
+          fi
+          if ! echo "$CXX" | grep -qi "clang"; then
+            echo "FAIL: CXX does not point to clang (got: $CXX)"
+            exit 1
+          fi
+          # Verify CC points into our fake directory
+          if ! echo "$CC" | grep -q "/tmp/llvm-env/bin/clang"; then
+            echo "FAIL: CC does not point to /tmp/llvm-env/bin/clang (got: $CC)"
+            exit 1
+          fi
+          # Verify CXX points into our fake directory
+          if ! echo "$CXX" | grep -q "/tmp/llvm-env/bin/clang++"; then
+            echo "FAIL: CXX does not point to /tmp/llvm-env/bin/clang++ (got: $CXX)"
+            exit 1
+          fi
+          echo "PASS: CC=$CC and CXX=$CXX are set to clang paths"
+      - name: Assert LLVM_PATH is set
+        env:
+          LLVM_PATH: ${{ env.LLVM_PATH }}
+        run: |
+          echo "LLVM_PATH: $LLVM_PATH"
+          if [ -z "$LLVM_PATH" ]; then
+            echo "FAIL: LLVM_PATH environment variable is not set"
+            exit 1
+          fi
+          if [ "$LLVM_PATH" != "/tmp/llvm-env" ]; then
+            echo "FAIL: expected LLVM_PATH=/tmp/llvm-env but got $LLVM_PATH"
+            exit 1
+          fi
+          echo "PASS: LLVM_PATH=$LLVM_PATH"
+      - name: Assert LD_LIBRARY_PATH is set
+        env:
+          LD_LIBRARY_PATH: ${{ env.LD_LIBRARY_PATH }}
+        run: |
+          echo "LD_LIBRARY_PATH: $LD_LIBRARY_PATH"
+          if [ -z "$LD_LIBRARY_PATH" ]; then
+            echo "FAIL: LD_LIBRARY_PATH environment variable is not set"
+            exit 1
+          fi
+          if ! echo "$LD_LIBRARY_PATH" | grep -q "/tmp/llvm-env/lib"; then
+            echo "FAIL: LD_LIBRARY_PATH does not contain /tmp/llvm-env/lib"
+            exit 1
+          fi
+          echo "PASS: LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
