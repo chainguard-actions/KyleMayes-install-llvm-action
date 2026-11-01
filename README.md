@@ -6,9 +6,9 @@ Hardened by [Chainguard](https://www.chainguard.dev) from the upstream action at
 
 ## Versions
 
-| Version | Tag | Upstream commit |
-|---------|-----|-----------------|
-| v2.0.9 | [`v2.0.9`](https://github.com/chainguard-actions/KyleMayes-install-llvm-action/tree/v2.0.9) | [`ebc0426`](https://github.com/KyleMayes/install-llvm-action/commit/ebc0426251bc40c7cd31162802432c68818ab8f0) |
+| Version | Tag | Upstream commit | Hardening report |
+|---------|-----|-----------------|------------------|
+| v2.0.9 | [`v2.0.9`](https://github.com/chainguard-actions/KyleMayes-install-llvm-action/tree/v2.0.9) | [`ebc0426`](https://github.com/KyleMayes/install-llvm-action/commit/ebc0426251bc40c7cd31162802432c68818ab8f0) | [`HARDENING.md`](https://github.com/chainguard-actions/KyleMayes-install-llvm-action/blob/v2.0.9/HARDENING.md) |
 
 ## Privacy
 
