@@ -4,8 +4,13 @@
   "version": "v2.0.9",
   "commit_sha": "ebc0426251bc40c7cd31162802432c68818ab8f0",
   "url": "https://github.com/KyleMayes/install-llvm-action",
-  "policy_sha": "d636be7e43ef829af6e853da6b3c7566db9f72fe",
+  "policy_sha": "374911c4be584df24e6da57af2d990570ef0f859",
   "test_policy_sha": "843adf9e4b8f85d0c08b27b9d0b09dd094b54702",
   "test_agent_version": "2",
-  "harden_agent_version": "2"
+  "harden_agent_version": "2",
+  "dist_artifact": {
+    "gcs_uri": "gs://patch-actions-node-artifacts/dist-artifacts/KyleMayes/install-llvm-action/v2.0.9/sha256-f8b41b994f93d07e1a0233fcc8e7f0dfea25b9a3b6777bbfad0d3adfd2f1858f.tar.gz",
+    "sha256": "f8b41b994f93d07e1a0233fcc8e7f0dfea25b9a3b6777bbfad0d3adfd2f1858f",
+    "size_bytes": 606126
+  }
 }
